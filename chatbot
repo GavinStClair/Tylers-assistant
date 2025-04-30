@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tyler's Assistant</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    #chatbox { width: 300px; height: 400px; border: 1px solid #ccc; padding: 10px; overflow-y: scroll; }
+    #userInput { width: 240px; }
+    #sendBtn { width: 50px; }
+  </style>
+</head>
+<body>
+  <h2>Tyler's Assistant</h2>
+  <div id="chatbox"></div>
+  <input type="text" id="userInput" placeholder="Type your message..." />
+  <button id="sendBtn">Send</button>
+
+  <script>
+    const chatbox = document.getElementById('chatbox');
+    const userInput = document.getElementById('userInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    const responses = {
+      "hi": "Hello! I'm Tyler's Assistant. How can I help you today?",
+      "hello": "Hi there! Need assistance with a home inspection?",
+      "inspection": "We offer comprehensive home inspections. Could you please provide your name and contact details?",
+      "bye": "Goodbye! Feel free to reach out if you have more questions."
+    };
+
+    function appendMessage(sender, message) {
+      const msgDiv = document.createElement('div');
+      msgDiv.textContent = `${sender}: ${message}`;
+      chatbox.appendChild(msgDiv);
+      chatbox.scrollTop = chatbox.scrollHeight;
+    }
+
+    sendBtn.addEventListener('click', () => {
+      const message = userInput.value.trim().toLowerCase();
+      if (message) {
+        appendMessage('You', message);
+        const response = responses[message] || "I'm sorry, I didn't understand that. Could you please rephrase?";
+        appendMessage("Tyler's Assistant", response);
+        userInput.value = '';
+      }
+    });
+  </script>
+</body>
+</html>
