@@ -4,46 +4,111 @@
   <meta charset="UTF-8">
   <title>Tyler's Assistant</title>
   <style>
-    body { font-family: Arial, sans-serif; }
-    #chatbox { width: 300px; height: 400px; border: 1px solid #ccc; padding: 10px; overflow-y: scroll; }
-    #userInput { width: 240px; }
-    #sendBtn { width: 50px; }
+    body {
+      font-family: sans-serif;
+      background-color: #f0f0f0; /* Light gray background */
+      color: #333; /* Dark gray text */
+    }
+    #chatbox {
+      width: 350px;
+      height: 400px;
+      border: 1px solid #555; /* Dark gray border */
+      padding: 10px;
+      overflow-y: scroll;
+      background-color: #ddd; /* Darker gray chatbox background */
+      margin-bottom: 10px;
+    }
+    #userInput {
+      width: 270px;
+      padding: 8px; /* Padding for the input field */
+      border: 1px solid #004d00; /* Dark green border */
+      border-radius: 5px; /* Rounded corners */
+    }
+    #sendBtn {
+      width: 60px;
+      background-color: #008000; /* Green background */
+      color: white;
+      border: none;
+      padding: 8px;
+      border-radius: 5px; /* Rounded corners */
+      cursor: pointer;
+    }
+    .message {
+      padding: 8px;
+      margin-bottom: 5px;
+      border-radius: 10px;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+    .user-message {
+      background-color: #dcf8c6; /* Light green for user messages */
+      align-self: flex-end;
+      margin-left: auto;
+    }
+    .assistant-message {
+      background-color: #e5e5ea; /* Light gray for assistant messages */
+      align-self: flex-start;
+      margin-right: auto;
+    }
   </style>
 </head>
 <body>
   <h2>Tyler's Assistant</h2>
   <div id="chatbox"></div>
   <input type="text" id="userInput" placeholder="Type your message..." />
-  <button id="sendBtn">Send</button>
+  <button id="sendBtn">Send</button><br>
 
   <script>
     const chatbox = document.getElementById('chatbox');
     const userInput = document.getElementById('userInput');
     const sendBtn = document.getElementById('sendBtn');
 
-    const responses = {
-      "hi": "Hello! I'm Tyler's Assistant. How can I help you today?",
-      "hello": "Hi there! Need assistance with a home inspection?",
-      "inspection": "We offer comprehensive home inspections. Could you please provide your name and contact details?",
-      "bye": "Goodbye! Feel free to reach out if you have more questions."
-    };
-
     function appendMessage(sender, message) {
       const msgDiv = document.createElement('div');
+      console.log(`Response: ${message}`);
+      msgDiv.classList.add('message');
+      if (sender === 'You') {
+        msgDiv.classList.add('user-message');
+      } else {
+        msgDiv.classList.add('assistant-message');
+      }
       msgDiv.textContent = `${sender}: ${message}`;
       chatbox.appendChild(msgDiv);
       chatbox.scrollTop = chatbox.scrollHeight;
     }
 
-    sendBtn.addEventListener('click', () => {
-      const message = userInput.value.trim().toLowerCase();
-      if (message) {
-        appendMessage('You', message);
-        const response = responses[message] || "I'm sorry, I didn't understand that. Could you please rephrase?";
-        appendMessage("Tyler's Assistant", response);
-        userInput.value = '';
-      }
+     sendBtn.addEventListener('click', async () => {
+        const message = userInput.value.trim();
+        if (message) {
+            appendMessage('You', message);
+            userInput.value = '';
+
+            try {
+                const response = await fetch('/llm_response', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ query: message })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                if (data.response) {
+                  appendMessage("Tyler's Assistant", data.response);
+                }else{
+                  appendMessage("Tyler's Assistant", "Error: No response was provided by the server");
+                }
+            } catch (error) {
+                console.error('Error fetching response from LLM:', error);
+                appendMessage("Tyler's Assistant", "Error: Failed to get response. Please try again later.");
+            }
+        }
     });
-  </script>
+
+    </script>
 </body>
 </html>
